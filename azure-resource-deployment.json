@@ -1,0 +1,80 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "storageAccountName": {
+            "type":"string",
+            "metadata": {
+                "description": "Name of the Azure storage account"
+            }
+        },
+        "cdnProfileName":{
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure CDN profile"
+            }
+        },
+        "endpointName": {
+            "type":"string",
+            "metadata": {
+                "description": "Name of the Azure CDN endpoint"
+            }
+        }
+        },
+        "variables": {
+            "location":"[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_Microsoft",
+                "tier": "Standard"
+            }
+        },
+        "resources": [
+            {
+                "type":"Microsoft.Storage/storageAccounts",
+                "apiVesion":"2019-06-01",
+                "name":"[variables('location')]",
+                "sku":{
+                    "name":"Standard_LRS",
+                    "tier":"Standard"
+                },
+                {
+                    type:"Microsoft.Cdn/profiles",
+                    "apiVersion":"2019-04-15",
+                    "name":"[parameters('cdnProfileName')]",
+                    "location":"[variables('location')]",
+                    "sku":{
+                        "name":"[variables('sku').name]",
+                        "tier":"[variables('sku'].tier"
+                    },
+                    "properties": {
+                        "supportsHttpsTrafficOnly":true,
+                        "staticWebsite": {
+                            "enabled": true,
+                            "indexDocument":"index.html",
+                            "errorDocument404Path":"404.html"
+                        }
+                    }
+                },
+                {
+                    "type":"Microsoft.Cdn/profiles/endpoints",
+                    "apiVersion":"2019-04-15"
+                    "name":"[concat(parameters('cdnProfileName'), '/',parameters('endpointName'))]",
+                    "location":"[variables('location')]",
+                    "dependsOn": [
+                        "resourceId('Microsoft.Cdn/profiles',parametesr('cdnProfileName'))]"
+                    ],
+                    "properties": {
+                        "isHttpAllowed":false,
+                        "isHttpsAllowed":true,
+                        "originHostHeader":"[parameters('storageAccountName'] + '.blob.core.windows.net']",
+                        "httpPort":80,
+                        "httpsPort":443
+                    }
+        ]
+                }
+            }
+            ]
+}
+
+
+    
